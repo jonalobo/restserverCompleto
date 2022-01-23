@@ -4,6 +4,7 @@ const { userGet,userPost, userPatch, userDelete, userPut } = require('../control
 const { dbConnection } = require("../database/configdb");
 const { check } = require("express-validator");
 const { validarCampos } = require("../middlewares/validar-campos");
+const Role = require('../models/role')
 
 /* const { validarCampos } = require("../middlewares/validar-campos"); */
 /* const { esRoleValido } = require("../helpers/db-validators"); */
@@ -45,6 +46,13 @@ class Server {
             check('nombre', 'El nombre es obligatorio').not().isEmpty(),
             check('correo', 'El correo no es válido').isEmail(),
             check('rol','No es un rol válido').isIn(['ADMIN_ROLE','USER_ROLE']),
+            //Validación del rol contra la Bd
+            check('rol').custom(async(rol = '')=>{
+                const existeRol = await Role.findOne({rol})
+                if (!existeRol) {
+                    throw new Error(`El ${ rol } No existe`)
+                }
+            }),
             validarCampos//este es un middleware que hemos creado para validaciones donde se ejecuta el validationResults  
         ], userPost)
         this.app.put('/api/usuarios', userPut)
