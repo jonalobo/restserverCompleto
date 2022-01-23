@@ -34,9 +34,10 @@ const UsuarioShema = Schema({
     }
 })
 
-/* UsuarioShema.methods.toJSON = function () {
+//Con esto evitamos enviar el password como respuesta
+UsuarioShema.methods.toJSON = function () {
     const { __v, password, ...usuario } = this.toObject()
     return usuario
-} */
+}
 
 module.exports = model('Usuario', UsuarioShema)

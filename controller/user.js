@@ -3,18 +3,17 @@ const { response, request } = require('express')
 const Usuario = require('../models/usuarios')
 //modulo de encriptacion 
 const bcryptjs = require('bcryptjs')
-const { validationResult } = require('express-validator')
 
 //Acá en get mandarémos query params, esto me sirve para mi proyecto de garantías
 //Express incorpora todas estas funcionalidades
-const userGet = (req, res) => {
-
+const userGet = async(req, res) => {
+    //Acá se usa el .find es el que ocupo
     //Obtendre la serie que me manda el cliente
     const query = req.query
     //Puedo desestructurar
+    const usuarios = await Usuario.find()
     res.json({
-        mensaje: "GET",
-        query
+        usuarios
     })
 }
 const userPost = async(req = request, res) => {
@@ -33,15 +32,7 @@ const userPost = async(req = request, res) => {
     //Ahora voy a crear una instancia de usuario del schema de la db
     const usuario = new Usuario({nombre, correo, password, rol})
 
-    //Validare que el correo no este en la BD
-    const existeEmail = await Usuario.findOne({correo})
-
-    //Lo paso por la válidación
-    if (existeEmail) {
-        return res.status(400).json({
-            mensaje: "El correo ya está registrado"
-        })
-    }
+    //Validar existencia del correo esta en helpers
 
     //encriptando la contraseña
     const salt = bcryptjs.genSaltSync()
@@ -54,18 +45,27 @@ const userPost = async(req = request, res) => {
         usuario
     })
 }
-const userPut = (req = request, res) => {
+const userPut = async(req = request, res) => {
     //Acá recibiré información del usuario por ejm su id esto tambien lo cambio en la ruta put
-    /* const { id } = req.params */
+    const { id } = req.params
+    const {_id, password, google, correo, ...resto} = req.body
+
+    //Validación de ruta contra bd
+    if (password) {
+        //encriptando la contraseña
+    const salt = bcryptjs.genSaltSync()
+    resto.password = bcryptjs.hashSync(password, salt)
+    }
+    const usuario = await Usuario.findByIdAndUpdate( id, resto)
 
     res.json({
-        mensaje: "PUT"
+        mensaje: "PUT",
+        id
     })
 }
-const userDelete = (req, res) => {
-    res.json({
-        mensaje: "DELETE"
-    })
+const userDelete = async(req, res) => {
+    const {id} = req.params
+    const usuario = await Usuario.findByIdAndUpdate(id, { estado:false}) 
 }
 const userPatch = (req, res) => {
     res.json({

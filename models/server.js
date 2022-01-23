@@ -4,7 +4,8 @@ const { userGet,userPost, userPatch, userDelete, userPut } = require('../control
 const { dbConnection } = require("../database/configdb");
 const { check } = require("express-validator");
 const { validarCampos } = require("../middlewares/validar-campos");
-const Role = require('../models/role')
+const Role = require('../models/role');
+const { esRoleValido, emailExiste, existeUsuarioPorId } = require("../helpers/db-validator");
 
 /* const { validarCampos } = require("../middlewares/validar-campos"); */
 /* const { esRoleValido } = require("../helpers/db-validators"); */
@@ -45,18 +46,23 @@ class Server {
             check('password','El password es obligatorio y debe ser de más de 6 letras').isLength({ min:6}),
             check('nombre', 'El nombre es obligatorio').not().isEmpty(),
             check('correo', 'El correo no es válido').isEmail(),
+            check('correo').custom(emailExiste),
             check('rol','No es un rol válido').isIn(['ADMIN_ROLE','USER_ROLE']),
             //Validación del rol contra la Bd
-            check('rol').custom(async(rol = '')=>{
-                const existeRol = await Role.findOne({rol})
-                if (!existeRol) {
-                    throw new Error(`El ${ rol } No existe`)
-                }
-            }),
+            check('rol').custom(esRoleValido),//Para esto esta la funcion dentro de helpers
             validarCampos//este es un middleware que hemos creado para validaciones donde se ejecuta el validationResults  
         ], userPost)
-        this.app.put('/api/usuarios', userPut)
-        this.app.delete('/api/usuarios', userDelete)
+        this.app.put('/api/usuarios/:id',[
+            check('id','No es un id válido').isMongoId(),
+            check('id').custom(existeUsuarioPorId),
+            check('rol').custom(esRoleValido),
+            validarCampos
+        ] , userPut)
+        this.app.delete('/api/usuarios', [
+            check('id','No es un id válido').isMongoId(),
+            check('id').custom(existeUsuarioPorId),
+            validarCampos
+        ], userDelete)
         this.app.patch('/api/usuarios', userPatch)
     }
     listen(){
