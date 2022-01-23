@@ -3,6 +3,7 @@ require('dotenv')
 const { userGet,userPost, userPatch, userDelete, userPut } = require('../controller/user');
 const { dbConnection } = require("../database/configdb");
 const { check } = require("express-validator");
+const { validarCampos } = require("../middlewares/validar-campos");
 
 /* const { validarCampos } = require("../middlewares/validar-campos"); */
 /* const { esRoleValido } = require("../helpers/db-validators"); */
@@ -43,8 +44,8 @@ class Server {
             check('password','El password es obligatorio y debe ser de más de 6 letras').isLength({ min:6}),
             check('nombre', 'El nombre es obligatorio').not().isEmpty(),
             check('correo', 'El correo no es válido').isEmail(),
-            check('rol','No es un rol válido').isIn(['ADMIN_ROLE','USER_ROLE'])
-           
+            check('rol','No es un rol válido').isIn(['ADMIN_ROLE','USER_ROLE']),
+            validarCampos//este es un middleware que hemos creado para validaciones donde se ejecuta el validationResults  
         ], userPost)
         this.app.put('/api/usuarios', userPut)
         this.app.delete('/api/usuarios', userDelete)

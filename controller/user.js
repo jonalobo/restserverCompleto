@@ -20,10 +20,10 @@ const userGet = (req, res) => {
 const userPost = async(req = request, res) => {
 
     //En el req es donde estarán los resultados de los checks de express validator
-    const errors = validationResult(req)
+    /* const errors = validationResult(req)
     if (!errors.isEmpty()) {
         return res.status(400).json(errors)
-    }
+    } */
     //Acá recibiré información del usuario por ejm su id esto tambien lo cambio en la ruta put
     /* const { id } = req.params */
     //Voy a recibir información que viene de un body atraves del metodo post en el req
